@@ -15,12 +15,20 @@ const UrlShortener = () => {
     try {
       setLoading(true);
       setError('');
-      // TODO this is a mock api call, will replace it in the future
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Simple mock logic
-      const mockId = Math.random().toString(36).substring(7);
-      setShortUrl(`https://short.url/${mockId}`);
+      const response = await fetch('/api/v1/shorten', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ longUrl: url }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to shorten URL');
+      }
+
+      const data = await response.json();
+      setShortUrl(data.shortUrl);
     } catch (err) {
       setError('Something went wrong. Please try again.');
     } finally {
@@ -30,7 +38,7 @@ const UrlShortener = () => {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(shortUrl);
+      await navigator.clipboard.writeText(`${import.meta.env.VITE_BACKEND_URL}/api/v1/urls/${shortUrl}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
